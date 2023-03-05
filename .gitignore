@@ -3,6 +3,10 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+vk_token_bot/logs.txt
+vk_token_bot/state/*
+vk_token_bot/credentials.json
+
 # C extensions
 *.so
 
