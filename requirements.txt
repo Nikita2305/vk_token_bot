@@ -1,4 +1,3 @@
 python-telegram-bot==13.14
 requests
 jsonpickle
-git+https://github.com/Nikita2305/python-telegram-simple.git#egg=python-telegram-simple
