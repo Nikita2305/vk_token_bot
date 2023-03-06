@@ -3,6 +3,8 @@ from vk_token_bot.utils import *
 from vk_token_bot.access_manager import *
 import traceback
 import os
+import requests
+import json
 
 from telegram.ext import (
     CommandHandler,
@@ -73,19 +75,84 @@ class GetVkToken (BasicDialogue):
         self.permissions = USER | MANAGER
         self.order = [
             SimpleHelloUnit("Введите токен доступа от администратора бота или нажмите /cancel, если он вам неизвестен.", entry_message=self.help_message),
-            DialogueUnit(self.check_token)
+            DialogueUnit(self.check_token),
+            ReadWriteUnit("login", "Теперь введите пароль, пожалуйста (или /cancel, если хотите прервать процесс)."),
+            ReadWriteUnit("password", "Если вам нужно прокси, нажмите /proxy, иначе /no_proxy (или /cancel, если хотите прервать процесс)."),
+            DialogueUnit(self.use_token)
         ]
         super().__init__(*args, **kwargs)
 
     def check_token(self, update, context):
         token = update.message.text
-        try:
-            self.state.token_handler.use_token(token)
-        except Exception as ex:
-            logger.debug(str(ex))
-            update.message.reply_text("Токен не найден")
+        if not self.state.token_handler.check_token(token):
+            logger.debug(f"Token {token} not found")
+            update.message.reply_text(f"Токен не найден, обратитесь к администраторам. Чтобы начать сначала, нажмите /{self.help_message}")
             return MessageActions.END
-        update.message.reply_text("Токен успешно использован")
+        context.user_data["sys_token"] = token
+        update.message.reply_text("Токен найден, приступаем к авторизации. Далее мы попросим у вас логин и пароль, напоминаем, что мы ничего не сохраняем, лишь генерируем vk-токен и отдаём его вам. Если вы не готовы к авторизации - ничего страшного, можно нажать /cancel и повторить попытку позже. Если вы согласны продолжить, введите логин, пожалуйста:")
+        return MessageActions.NEXT
+
+    def use_token(self, update, context):
+        is_proxy = update.message.text
+        if is_proxy not in ["/proxy", "/no_proxy"]:
+            update.message.reply_text(f"Ожидалась одна из опций /proxy или /no_proxy. Чтобы начать сначала, нажмите /{self.help_message}")
+            return MessageActions.END 
+        is_proxy = (is_proxy == "/proxy")
+
+        sys_token = context.user_data["sys_token"]
+        if not self.state.token_handler.check_token(sys_token):
+            logger.debug(f"Token {sys_token} not found")
+            update.message.reply_text(f"Ваш токен доступа просрочен, обратитесь к администраторам. Чтобы начать сначала, нажмите {self.help_message}")
+            return MessageActions.END
+
+        session = requests.Session()
+        proxy_text = None
+        user_agent = None
+        proxy_cfg = None
+        if is_proxy:     
+            try:
+                proxy_cfg, user_agent = self.state.proxy_api.assign_proxy()
+                proxy_text = self.state.proxy_api.config2text(proxy_cfg)
+                logger.debug(f"Use {proxy_text} and {user_agent}")
+            except Exception as ex:
+                if proxy_cfg is not None:
+                    proxy_cfg["used"] -= 1
+                update.message.reply_text(f"Возникла ошибка в прокси-центре: {ex}.\n\n Обратитесь к администратору.")
+                return MessageActions.END
+            session.proxies = {"http": proxy_text}
+            session.headers = {"User-Agent": user_agent}       
+ 
+        if EXPLICIT_USER_AGENT:
+            user_agent = EXPLICIT_USER_AGENT
+            session.headers = {"User-Agent": user_agent}
+
+        login = context.user_data["login"]
+        password = context.user_data["password"]
+        
+        try:
+            token = obtain_vk_token(session, login, password)
+        except Exception as ex:
+            if proxy_cfg is not None:
+                proxy_cfg["used"] -= 1
+            logger.warning(f"Error while vk-session obtaining: {ex}")
+            update.message.reply_text(f"Возникла ошибка в vk-центре: {ex}. \n\n Обратитесь к администратору или измените данные.")
+            return MessageActions.END
+
+        response = {"token": token}
+        if is_proxy or EXPLICIT_USER_AGENT:
+            response["User-Agent"] = user_agent
+        if is_proxy:
+            response["http_proxy"] = proxy_text 
+
+        update.message.reply_text("Успешно!")
+
+        update.message.reply_text(json.dumps(response, indent=4, ensure_ascii=True))
+ 
+        try:    
+            self.state.token_handler.use_token(sys_token)
+        except Exception as ex:
+            logger.error(f"Token {sys_token} was active at the beggining of action, but expired at the end. Exception: {ex}")
+ 
         return MessageActions.END
         
 
@@ -131,7 +198,7 @@ class ProxyApiToken (BasicDialogue):
             update.message.reply_text(f"proxy token: {self.state.proxy_api.get_token()}")
         else:
             self.state.proxy_api.set_token(text)
-            update.message.reply_text("Установлен proxy-api токен: {text}")
+            update.message.reply_text(f"Установлен proxy-api токен: {text}")
 
 class GetId (BasicMessage):
         

@@ -15,8 +15,10 @@ class TokenHandler (StateObject):
         token = self._gen_token()
         self.tokens += [token]
         return token
+    def check_token(self, token):
+        return token in self.tokens
     def use_token(self, token):
-        if token not in self.tokens:
+        if not self.check_token(token):
             raise RuntimeError("Token not found")
         self.tokens.pop(self.tokens.index(token))
     def get_tokens(self):
