@@ -261,15 +261,14 @@ class DialogueUnit:
 
     def cute_handle(self, update, context):
         ret = self.callback(update, context)
-        match ret:
-            case MessageActions.NEXT:
-                return self.order_id + 1
-            case MessageActions.PREV:
-                return self.order_id - 1
-            case MessageActions.REDO:
-                return self.order_id
-            case MessageActions.END:
-                return ConversationHandler.END
+        if ret == MessageActions.NEXT:
+            return self.order_id + 1
+        if ret == MessageActions.PREV:
+            return self.order_id - 1
+        if ret == MessageActions.REDO:
+            return self.order_id
+        if ret == MessageActions.END:
+            return ConversationHandler.END
         return ret
 
 class SimpleHelloUnit (DialogueUnit):
