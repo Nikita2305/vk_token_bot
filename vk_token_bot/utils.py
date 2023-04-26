@@ -74,6 +74,7 @@ def download_captcha(link):
         f.write(response.content)
     return path
 
+import time
 def obtain_code(path):
     api = CaptchaApi()
     res = api.method("in", {"method": "base64", "body": api.to_base(path)})

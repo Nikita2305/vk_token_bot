@@ -199,6 +199,7 @@ class ProxyApiToken (BasicDialogue):
         else:
             self.state.proxy_api.set_token(text)
             update.message.reply_text(f"Установлен proxy-api токен: {text}")
+        return MessageActions.END
 
 class GetId (BasicMessage):
         

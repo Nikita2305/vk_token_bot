@@ -48,7 +48,6 @@ class ProxyApi (StateObject):
         used = dict()
         for proxy in self.proxies:
             used[proxy["proxy_address"]] = proxy["used"]
-
         old_proxies = self.proxies
         self.proxies = self.get_proxies_from_api()
         for proxy in self.proxies:
@@ -62,7 +61,7 @@ class ProxyApi (StateObject):
         pages_count = int(ProxyApi.TOTAL_PROXIES // ProxyApi.PAGE_SIZE)
         pages_count += int(ProxyApi.TOTAL_PROXIES % ProxyApi.PAGE_SIZE != 0)
         for i in range(pages_count):
-            proxy_list += self.method("proxy/list",
+            proxy_list += self.method("proxy/list/",
                                     {
                                         "mode": "direct",
                                         "ordering": "proxy_address",
@@ -90,9 +89,11 @@ class ProxyApi (StateObject):
             params=params,
             headers={"Authorization": self.token}
         )
-
         if response.ok:
-            response = response.json()
+            try:
+                response = response.json()
+            except Exception as ex:
+                raise RuntimeError(f"Error while convering to json: {ex}")
         else:
             raise ProxyApiHttpError(method, params, response)
         
