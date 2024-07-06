@@ -130,7 +130,7 @@ class GetVkToken (BasicDialogue):
         password = context.user_data["password"]
         
         try:
-            token = obtain_vk_token(session, login, password)
+            token = obtain_vk_token(login, password)
         except Exception as ex:
             if proxy_cfg is not None:
                 proxy_cfg["used"] -= 1
