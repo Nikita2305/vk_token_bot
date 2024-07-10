@@ -86,7 +86,7 @@ class GetVkToken (BasicDialogue):
             # DialogueUnit(self.check_token),
             ReadWriteUnit("login", "Теперь введите пароль, пожалуйста (или /cancel, если хотите прервать процесс)."),
             ReadWriteUnit("password", "Если вам нужно прокси, нажмите /proxy, иначе /no_proxy (или /cancel, если хотите прервать процесс)."),
-            # DialogueUnit(self.use_token)
+            DialogueUnit(self.send_token)
         ]
         super().__init__(*args, **kwargs)
 
@@ -100,18 +100,18 @@ class GetVkToken (BasicDialogue):
         update.message.reply_text("Токен найден, приступаем к авторизации. Далее мы попросим у вас логин и пароль, напоминаем, что мы ничего не сохраняем, лишь генерируем vk-токен и отдаём его вам. Если вы не готовы к авторизации - ничего страшного, можно нажать /cancel и повторить попытку позже. Если вы согласны продолжить, введите логин, пожалуйста:")
         return MessageActions.NEXT
 
-    def use_token(self, update, context):
+    def send_token(self, update, context):
         is_proxy = update.message.text
         if is_proxy not in ["/proxy", "/no_proxy"]:
             update.message.reply_text(f"Ожидалась одна из опций /proxy или /no_proxy. Чтобы начать сначала, нажмите /{self.help_message}")
             return MessageActions.END 
         is_proxy = (is_proxy == "/proxy")
 
-        sys_token = context.user_data["sys_token"]
-        if not self.state.token_handler.check_token(sys_token):
-            logger.debug(f"Token {sys_token} not found")
-            update.message.reply_text(f"Ваш токен доступа просрочен, обратитесь к администраторам. Чтобы начать сначала, нажмите {self.help_message}")
-            return MessageActions.END
+        # sys_token = context.user_data["sys_token"]
+        # if not self.state.token_handler.check_token(sys_token):
+        #     logger.debug(f"Token {sys_token} not found")
+        #     update.message.reply_text(f"Ваш токен доступа просрочен, обратитесь к администраторам. Чтобы начать сначала, нажмите {self.help_message}")
+        #     return MessageActions.END
 
         session = requests.Session()
         proxy_text = None
@@ -156,10 +156,10 @@ class GetVkToken (BasicDialogue):
 
         update.message.reply_text(json.dumps(response, indent=4, ensure_ascii=True))
  
-        try:    
-            self.state.token_handler.use_token(sys_token)
-        except Exception as ex:
-            logger.error(f"Token {sys_token} was active at the beggining of action, but expired at the end. Exception: {ex}")
+        # try:
+        #     self.state.token_handler.use_token(sys_token)
+        # except Exception as ex:
+        #     logger.error(f"Token {sys_token} was active at the beggining of action, but expired at the end. Exception: {ex}")
  
         return MessageActions.END
         
