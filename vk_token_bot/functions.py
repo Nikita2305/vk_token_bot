@@ -74,11 +74,19 @@ class GetVkToken (BasicDialogue):
         self.description = "Получить vk-token"
         self.permissions = USER | MANAGER
         self.order = [
-            SimpleHelloUnit("Введите токен доступа от администратора бота или нажмите /cancel, если он вам неизвестен.", entry_message=self.help_message),
-            DialogueUnit(self.check_token),
+            SimpleHelloUnit(
+                "Приступаем к авторизации. "
+                "Далее мы попросим у вас логин и пароль, напоминаем, что мы ничего не сохраняем, "
+                "лишь генерируем vk-токен и отдаём его вам. "
+                "Если вы не готовы к авторизации - ничего страшного, "
+                "можно нажать /cancel и повторить попытку позже. "
+                "Если вы согласны продолжить, введите логин, пожалуйста:",
+                entry_message=self.help_message,
+            ),
+            # DialogueUnit(self.check_token),
             ReadWriteUnit("login", "Теперь введите пароль, пожалуйста (или /cancel, если хотите прервать процесс)."),
             ReadWriteUnit("password", "Если вам нужно прокси, нажмите /proxy, иначе /no_proxy (или /cancel, если хотите прервать процесс)."),
-            DialogueUnit(self.use_token)
+            # DialogueUnit(self.use_token)
         ]
         super().__init__(*args, **kwargs)
 
