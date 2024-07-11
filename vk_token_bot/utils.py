@@ -1,4 +1,7 @@
-import os 
+import os
+
+from vk_api import VkUserPermissions
+
 credentials_path = os.path.dirname(__file__) + "/credentials.json"
 
 import json
@@ -109,10 +112,12 @@ def obtain_vk_token(vk_login, vk_password):
         vk_login,
         vk_password,
         captcha_handler=chandler,
-        app_id=6287487,
+        app_id=7793118,
+        scope=VkUserPermissions.OFFLINE,
     )
     vk_session.auth(token_only=True)
     os.system("rm vk_config.v2.json")
+    print(vk_session.token)
     return vk_session.token["access_token"]
 
 from enum import Enum
