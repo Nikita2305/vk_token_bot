@@ -42,29 +42,29 @@ def obtain_vk_token(vk_login, vk_password):
     vk_session = vk_api.VkApi(
         vk_login,
         vk_password,
-        app_id=7793118,
-        scope=VkUserPermissions.OFFLINE,
+        app_id=6121396,
         captcha_handler=chandler,
+        scope=501202911,
     )
     vk_session.auth(token_only=True)
-    # print(vk_session.token['expires_in'])
+    print(vk_session.token['expires_in'])
     print(f'{vk_login}:{vk_session.token["access_token"]}')
 
 def main():
     accounts = [
-        "79633158389:volUTHfRcdJiEg63",
-        "79196025007:W7AxVrwktbiPYkV2",
-        "79283844699:4uO8nM9SV8PICLTV",
-        "79122511310:WZLuLP0ZIAj7dsNF",
-        "79058369933:rF6f3Ujq88Xvx2bz",
-        "79162951700:y3sg4HTZwXAywYdx",
-        "79997235575:dHTkxTThRalUqhSr",
-        "79500310909:O0gAcpJyi4YmZxNv",
-        "79053427836:Ym3fwjJH7n25UEY3",
-        "201125298108:m01063356567",
-        "201026412306:Salma91!",
-        "201022658981:22nadaali97",
-        "201030091457:034209199",
+        # "79633158389:volUTHfRcdJiEg63",
+        # "79196025007:W7AxVrwktbiPYkV2",
+        # "79283844699:4uO8nM9SV8PICLTV",
+        # "79122511310:WZLuLP0ZIAj7dsNF",
+        # "79058369933:rF6f3Ujq88Xvx2bz",
+        # "79162951700:y3sg4HTZwXAywYdx",
+        # "79997235575:dHTkxTThRalUqhSr",
+        # "79500310909:O0gAcpJyi4YmZxNv",
+        # "79053427836:Ym3fwjJH7n25UEY3",
+        # "201125298108:m01063356567",
+        # "201026412306:Salma91!",
+        # "201022658981:22nadaali97",
+        # "201030091457:034209199",
     ]
     for account in accounts:
         obtain_vk_token(*account.split(':'))

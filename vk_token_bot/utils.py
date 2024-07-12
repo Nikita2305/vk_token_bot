@@ -112,8 +112,8 @@ def obtain_vk_token(vk_login, vk_password):
         vk_login,
         vk_password,
         captcha_handler=chandler,
-        app_id=7793118,
-        scope=VkUserPermissions.OFFLINE,
+        app_id=6121396,
+        scope=501202911,
     )
     vk_session.auth(token_only=True)
     os.system("rm vk_config.v2.json")
