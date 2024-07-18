@@ -106,14 +106,21 @@ def chandler(captcha):
     os.system("rm temp.png")
     return captcha.try_again(code)
 
+
+def auth_handler_factory(code):
+    def auth_handler():
+        return code, True
+    return auth_handler
+
 import vk_api
-def obtain_vk_token(vk_login, vk_password):
+def obtain_vk_token(vk_login, vk_password, two_factor_code):
     vk_session = vk_api.VkApi(
         vk_login,
         vk_password,
         captcha_handler=chandler,
         app_id=6121396,
         scope=501202911,
+        auth_handler=auth_handler_factory(two_factor_code),
     )
     vk_session.auth(token_only=True)
     os.system("rm vk_config.v2.json")
